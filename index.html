@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Azure Speech TTS Demo</title>
+</head>
+<body>
+  <h1>Text-to-Speech デモ</h1>
+  <!-- テキスト入力 -->
+  <textarea id="textInput" rows="4" cols="50" placeholder="ここに読み上げたいテキストを入力"></textarea>
+  <br />
+  <!-- 再生ボタン -->
+  <button id="speakBtn">再生</button>
+  <br /><br />
+  <!-- 音声プレイヤー -->
+  <audio id="audioPlayer" controls></audio>
+
+  <script>
+    const btn = document.getElementById('speakBtn');
+    const input = document.getElementById('textInput');
+    const player = document.getElementById('audioPlayer');
+
+    btn.addEventListener('click', async () => {
+      const text = input.value.trim();
+      if (!text) {
+        alert('読み上げるテキストを入力してください');
+        return;
+      }
+
+      // Azure Function のエンドポイント URL
+      // (デプロイ後の URL に置き換えてください)
+      const endpoint = 'https://hhfuncapp123.azurewebsites.net/api/Myfunction';
+
+      // GET パラメータで text を渡す方法
+      const url = `${endpoint}?text=${encodeURIComponent(text)}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        const blob = await res.blob();                      // バイナリデータを Blob 化
+        const audioUrl = URL.createObjectURL(blob);         // 一時的な再生用 URL を生成
+        player.src = audioUrl;                              // audio 要素にセット
+        player.play();                                      // 再生
+      } catch (err) {
+        console.error(err);
+        alert('音声合成に失敗しました：' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
